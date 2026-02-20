@@ -38,9 +38,6 @@ function App() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(notes[0]);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
-  
-  // Vista móvil: 'folders' | 'notes' | 'editor'
-  const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
 
   // Inicializar PowerSync al cargar la app
   useEffect(() => {
@@ -101,7 +98,6 @@ function App() {
       setSelectedNote(newNote);
       setNewNoteTitle('');
       setIsCreatingNote(false);
-      setMobileView('editor');
       
       // Actualizar el contador de notas de la carpeta
       if (selectedFolderId) {
@@ -157,16 +153,6 @@ function App() {
     ));
   };
 
-  const handleSelectFolder = (folderId: string | null) => {
-    setSelectedFolderId(folderId);
-    setMobileView('notes');
-  };
-
-  const handleSelectNote = (note: Note) => {
-    setSelectedNote(note);
-    setMobileView('editor');
-  };
-
   // Calcular contadores de notas
   useEffect(() => {
     const counts: Record<string, number> = {};
@@ -180,6 +166,19 @@ function App() {
       noteCount: counts[folder.id] || 0,
     })));
   }, [notes]);
+
+  // Vista móvil: 'folders' | 'notes' | 'editor'
+  const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
+
+  const handleSelectFolder = (folderId: string | null) => {
+    setSelectedFolderId(folderId);
+    setMobileView('notes');
+  };
+
+  const handleSelectNote = (note: Note) => {
+    setSelectedNote(note);
+    setMobileView('editor');
+  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
@@ -201,22 +200,23 @@ function App() {
       <nav className={`${
         mobileView === 'notes' ? 'block' : 'hidden'
       } md:block md:w-80 w-full flex-shrink-0 flex flex-col border-r border-gray-700 bg-gray-850`}>
-        {/* Header de notas con navegación móvil */}
-        <div className="p-4 border-b border-gray-700 flex items-center gap-3">
-          <button
-            onClick={() => setMobileView('folders')}
-            className="md:hidden text-gray-400 hover:text-white text-2xl leading-none active:scale-95 transition-transform"
-          >
-            ←
-          </button>
-          <h2 className="text-lg font-semibold truncate flex-1">
-            {selectedFolderId
-              ? folders.find(f => f.id === selectedFolderId)?.name || 'Notas'
-              : 'Todas las notas'}
-          </h2>
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileView('folders')}
+              className="md:hidden text-gray-400 hover:text-white text-2xl leading-none"
+            >
+              ←
+            </button>
+            <h2 className="text-lg font-semibold truncate">
+              {selectedFolderId
+                ? folders.find(f => f.id === selectedFolderId)?.name || 'Notas'
+                : 'Todas las notas'}
+            </h2>
+          </div>
           <button
             onClick={() => setIsCreatingNote(true)}
-            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium"
           >
             + Nueva
           </button>
@@ -229,14 +229,14 @@ function App() {
               value={newNoteTitle}
               onChange={(e) => setNewNoteTitle(e.target.value)}
               placeholder="Título de la nota"
-              className="w-full bg-gray-700 text-white px-3 py-3 rounded mb-3 text-base"
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded mb-2 text-sm"
               autoFocus
               onKeyPress={(e) => e.key === 'Enter' && handleCreateNote()}
             />
             <div className="flex gap-2">
               <button
                 onClick={handleCreateNote}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded text-sm font-medium"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm"
               >
                 Crear
               </button>
@@ -245,7 +245,7 @@ function App() {
                   setIsCreatingNote(false);
                   setNewNoteTitle('');
                 }}
-                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2.5 rounded text-sm font-medium"
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm"
               >
                 Cancelar
               </button>
@@ -253,7 +253,7 @@ function App() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-3">
+        <div className="flex-1 overflow-y-auto p-4">
           {filteredNotes.length === 0 ? (
             <p className="text-gray-500 text-sm text-center mt-8">No hay notas aquí</p>
           ) : (
@@ -261,15 +261,15 @@ function App() {
               {filteredNotes.map(note => (
                 <li
                   key={note.id}
-                  className={`group p-4 rounded cursor-pointer active:bg-gray-600 transition-colors ${
+                  className={`group p-4 rounded cursor-pointer active:bg-gray-600 ${
                     selectedNote?.id === note.id ? 'bg-gray-700' : 'hover:bg-gray-800'
                   }`}
                   onClick={() => handleSelectNote(note)}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate text-base mb-1">{note.title}</h3>
-                      <p className="text-sm text-gray-400 line-clamp-2">
+                      <h3 className="font-medium truncate text-base">{note.title}</h3>
+                      <p className="text-sm text-gray-400 mt-1 line-clamp-2">
                         {note.content.replace(/<[^>]*>/g, '')}
                       </p>
                     </div>
@@ -280,7 +280,7 @@ function App() {
                           handleDeleteNote(note.id);
                         }
                       }}
-                      className="hidden md:group-hover:block text-gray-400 hover:text-red-400 ml-3 text-xl p-1"
+                      className="hidden md:group-hover:block text-gray-400 hover:text-red-400 ml-2 text-xl"
                     >
                       🗑️
                     </button>
@@ -294,7 +294,7 @@ function App() {
                       handleMoveNote(note.id, e.target.value || null);
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-gray-700 text-white text-sm px-3 py-2 rounded"
+                    className="mt-2 w-full bg-gray-700 text-white text-sm px-2 py-2 rounded"
                   >
                     <option value="">Sin carpeta</option>
                     {folders.map(folder => (
@@ -317,14 +317,14 @@ function App() {
         {selectedNote ? (
           <div className="h-full flex flex-col">
             {/* Header móvil del editor */}
-            <div className="md:hidden p-4 border-b border-gray-700 flex items-center gap-3 bg-gray-800">
+            <div className="md:hidden p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
               <button
                 onClick={() => setMobileView('notes')}
-                className="text-gray-400 hover:text-white text-2xl leading-none active:scale-95 transition-transform"
+                className="text-gray-400 hover:text-white text-2xl leading-none"
               >
                 ←
               </button>
-              <h3 className="flex-1 font-medium truncate">{selectedNote.title}</h3>
+              <h3 className="flex-1 mx-3 font-medium truncate text-sm">{selectedNote.title}</h3>
             </div>
             <div className="flex-1 overflow-hidden">
               <NoteEditor
@@ -336,7 +336,7 @@ function App() {
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 px-4 text-center">
-            <p>Selecciona una nota o crea una nueva</p>
+            Selecciona una nota o crea una nueva
           </div>
         )}
       </main>

@@ -98,43 +98,43 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
   return (
     <div className="flex flex-col h-full bg-gray-900">
       {/* Barra de herramientas */}
-      <div className="flex items-center gap-1 p-2 border-b border-gray-700 bg-gray-800 flex-wrap">
+      <div className="flex items-center gap-1 p-2 md:p-3 border-b border-gray-700 bg-gray-800 flex-wrap overflow-x-auto">
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm font-medium touch-manipulation ${
             editor.isActive('heading', { level: 1 })
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           H1
         </button>
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm font-medium touch-manipulation ${
             editor.isActive('heading', { level: 2 })
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           H2
         </button>
         <button
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm font-medium touch-manipulation ${
             editor.isActive('heading', { level: 3 })
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           H3
         </button>
         <button
           onClick={() => editor.chain().focus().setParagraph().run()}
-          className={`px-3 py-1.5 rounded text-sm font-medium ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm font-medium touch-manipulation ${
             editor.isActive('paragraph')
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           Párrafo
@@ -144,20 +144,20 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
         
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1.5 rounded text-sm font-bold ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm font-bold touch-manipulation ${
             editor.isActive('bold')
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           B
         </button>
         <button
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1.5 rounded text-sm italic ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm italic touch-manipulation ${
             editor.isActive('italic')
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           I
@@ -167,20 +167,20 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
         
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1.5 rounded text-sm ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm touch-manipulation ${
             editor.isActive('bulletList')
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           • Lista
         </button>
         <button
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`px-3 py-1.5 rounded text-sm ${
+          className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded text-sm touch-manipulation ${
             editor.isActive('orderedList')
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600 active:bg-gray-600'
           }`}
         >
           1. Lista
@@ -197,6 +197,26 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
         .ProseMirror {
           color: #e5e7eb;
           min-height: 100%;
+          -webkit-user-select: text;
+          user-select: text;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+        @media (max-width: 768px) {
+          .ProseMirror {
+            padding: 1.25rem !important;
+            font-size: 16px !important;
+            line-height: 1.6 !important;
+          }
+        }
+        @media (min-width: 769px) {
+          .ProseMirror {
+            padding: 1.5rem !important;
+          }
+        }
+        .touch-manipulation {
+          touch-action: manipulation;
+          -webkit-tap-highlight-color: transparent;
         }
         .ProseMirror h1 {
           font-size: 2em;
@@ -205,6 +225,11 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
           margin-bottom: 0.5em;
           color: white;
         }
+        @media (max-width: 768px) {
+          .ProseMirror h1 {
+            font-size: 1.75em;
+          }
+        }
         .ProseMirror h2 {
           font-size: 1.5em;
           font-weight: bold;
@@ -212,12 +237,22 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
           margin-bottom: 0.4em;
           color: white;
         }
+        @media (max-width: 768px) {
+          .ProseMirror h2 {
+            font-size: 1.4em;
+          }
+        }
         .ProseMirror h3 {
           font-size: 1.25em;
           font-weight: bold;
           margin-top: 0.6em;
           margin-bottom: 0.3em;
           color: white;
+        }
+        @media (max-width: 768px) {
+          .ProseMirror h3 {
+            font-size: 1.2em;
+          }
         }
         .ProseMirror p {
           margin-bottom: 1em;
@@ -234,11 +269,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
         .ProseMirror .resizable-image-wrapper {
           margin: 1.5em 0 2.5em 0;
           user-select: none;
+          -webkit-user-select: none;
+        }
+        @media (max-width: 768px) {
+          .ProseMirror .resizable-image-wrapper {
+            margin: 1em 0 2em 0;
+          }
         }
         .ProseMirror .resizable-image-wrapper img {
           max-width: 100%;
           height: auto;
           cursor: pointer;
+          touch-action: manipulation;
         }
         .ProseMirror strong {
           font-weight: bold;
