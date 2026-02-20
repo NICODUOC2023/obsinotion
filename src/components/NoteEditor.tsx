@@ -52,7 +52,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ initialContent, onContentChange
       attributes: {
         class: 'prose prose-invert max-w-none focus:outline-none p-6 min-h-full',
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 

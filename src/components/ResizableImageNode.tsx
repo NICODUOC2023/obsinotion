@@ -9,7 +9,7 @@ interface ResizableImageNodeProps {
 }
 
 const ResizableImageNode: React.FC<ResizableImageNodeProps> = ({ node, updateAttributes, selected }) => {
-  const [isResizing, setIsResizing] = useState(false);
+  const [, setIsResizing] = useState(false);
   const [dimensions, setDimensions] = useState({
     width: node.attrs.width || 'auto',
     height: node.attrs.height || 'auto',

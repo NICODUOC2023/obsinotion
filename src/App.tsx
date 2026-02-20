@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import NoteEditor from './components/NoteEditor';
 import FolderSidebar from './components/FolderSidebar';
 // import { initPowerSync, powerSync } from './lib/powersync';

@@ -1,12 +1,12 @@
 // src/lib/powersync.ts
 // PowerSync configuration - Descomentar cuando tengas las credenciales de Supabase configuradas
 // import { PowerSyncDatabase } from '@powersync/react';
-import { AppSchema } from '../schema'; 
+// import { AppSchema } from '../schema'; 
 // import { SupabaseConnector } from './SupabaseConnector';
 
 // Reemplaza con tus propias credenciales de Supabase
-const supabaseUrl = 'https://<project-id>.supabase.co';
-const supabaseAnonKey = '<your-anon-key>';
+// const supabaseUrl = 'https://<project-id>.supabase.co';
+// const supabaseAnonKey = '<your-anon-key>';
 
 // Placeholder para cuando configuremos PowerSync
 export const powerSync = null;
