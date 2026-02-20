@@ -1,0 +1,6 @@
+{
+  "appId": "com.obsinotion.app",
+  "appName": "Obsinotion",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
