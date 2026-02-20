@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import NoteEditor from './components/NoteEditor';
 import FolderSidebar from './components/FolderSidebar';
+import Auth from './components/Auth';
 import { supabase } from './lib/supabase';
 
 // Tipos
@@ -30,6 +31,7 @@ function App() {
   const [editingNoteTitle, setEditingNoteTitle] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   // Vista móvil: 'folders' | 'notes' | 'editor'
   const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
@@ -41,21 +43,36 @@ function App() {
 
   const initializeUser = async () => {
     try {
-      // Generar o recuperar ID de usuario único por dispositivo
-      let localUserId = localStorage.getItem('obsinotion_user_id');
+      // Verificar si hay sesión activa
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!localUserId) {
-        // Generar un UUID simple
-        localUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('obsinotion_user_id', localUserId);
+      if (session?.user) {
+        setUserId(session.user.id);
+        setIsAuthenticated(true);
       }
-      
-      setUserId(localUserId);
     } catch (error) {
       console.error('Error al inicializar usuario:', error);
-      alert('Error al inicializar la aplicación.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAuth = (id: string) => {
+    setUserId(id);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUserId(null);
+      setIsAuthenticated(false);
+      setNotes([]);
+      setFolders([]);
+      setSelectedNote(null);
+      setSelectedFolderId(null);
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
     }
   };
 
@@ -364,6 +381,10 @@ function App() {
     );
   }
 
+  if (!isAuthenticated) {
+    return <Auth onAuth={handleAuth} />;
+  }
+
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
       {/* Sidebar de Carpetas */}
@@ -377,6 +398,7 @@ function App() {
           onCreateFolder={handleCreateFolder}
           onRenameFolder={handleRenameFolder}
           onDeleteFolder={handleDeleteFolder}
+          onLogout={handleLogout}
         />
       </div>
 

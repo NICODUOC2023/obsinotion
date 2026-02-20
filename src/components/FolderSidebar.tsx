@@ -15,6 +15,7 @@ interface FolderSidebarProps {
   onCreateFolder: (name: string, color: string) => void;
   onRenameFolder: (folderId: string, newName: string) => void;
   onDeleteFolder: (folderId: string) => void;
+  onLogout?: () => void;
 }
 
 const FolderSidebar: React.FC<FolderSidebarProps> = ({
@@ -24,6 +25,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
+  onLogout,
 }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -196,6 +198,19 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
               Cancelar
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Botón de cerrar sesión */}
+      {onLogout && (
+        <div className="mt-auto pt-4 border-t border-gray-700">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors"
+          >
+            <span>🚪</span>
+            <span className="text-sm">Cerrar sesión</span>
+          </button>
         </div>
       )}
     </aside>
