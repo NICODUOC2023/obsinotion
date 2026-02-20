@@ -10,8 +10,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local env files
-.env*.local
+# Local env files.env.env*.local
 
 # Dependencies
 node_modules

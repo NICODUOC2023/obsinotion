@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import NoteEditor from './components/NoteEditor';
 import FolderSidebar from './components/FolderSidebar';
-import { supabase } from './lib/supabase';
+// import { initPowerSync, powerSync } from './lib/powersync';
 
 // Tipos
 interface Note {
@@ -19,314 +19,153 @@ interface Folder {
   noteCount: number;
 }
 
+// Datos de ejemplo
+const sampleFolders: Folder[] = [
+  { id: '1', name: 'Personal', color: 'blue', noteCount: 2 },
+  { id: '2', name: 'Trabajo', color: 'green', noteCount: 0 },
+  { id: '3', name: 'Ideas', color: 'purple', noteCount: 0 },
+];
+
+const sampleNotes: Note[] = [
+  { id: '1', title: 'Mi primera nota', content: '<h1>Hola Mundo</h1><p>Este es el contenido.</p>', folder_id: '1' },
+  { id: '2', title: 'Ideas de proyecto', content: '<ul><li>Idea 1</li><li>Idea 2</li></ul>', folder_id: '1' }
+];
+
 function App() {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [folders, setFolders] = useState<Folder[]>(sampleFolders);
+  const [notes, setNotes] = useState<Note[]>(sampleNotes);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(notes[0]);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteTitle, setEditingNoteTitle] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   
   // Vista móvil: 'folders' | 'notes' | 'editor'
   const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
 
-  // Inicializar usuario y cargar datos
+  // Inicializar PowerSync al cargar la app
   useEffect(() => {
-    initializeUser();
+    // En una app real, llamarías a initPowerSync() después del login del usuario
+    // initPowerSync(); 
+    console.log('PowerSync se inicializará aquí.');
   }, []);
-
-  const initializeUser = async () => {
-    try {
-      // Autenticación anónima - crea un usuario único por dispositivo
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) throw error;
-        setUserId(data.user?.id || null);
-      } else {
-        setUserId(session.user.id);
-      }
-    } catch (error) {
-      console.error('Error al inicializar usuario:', error);
-      alert('Error al conectar con el servidor. Verifica tu conexión.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Cargar datos cuando el usuario esté listo
-  useEffect(() => {
-    if (userId) {
-      loadFolders();
-      loadNotes();
-      subscribeToChanges();
-    }
-  }, [userId]);
-
-  const loadFolders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('folders')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      
-      const foldersWithCount: Folder[] = (data || []).map(f => ({
-        id: f.id,
-        name: f.name,
-        color: f.color,
-        noteCount: 0
-      }));
-      
-      setFolders(foldersWithCount);
-    } catch (error) {
-      console.error('Error al cargar carpetas:', error);
-    }
-  };
-
-  const loadNotes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const notesData: Note[] = (data || []).map(n => ({
-        id: n.id,
-        title: n.title,
-        content: n.content,
-        folder_id: n.folder_id
-      }));
-      
-      setNotes(notesData);
-      if (notesData.length > 0 && !selectedNote) {
-        setSelectedNote(notesData[0]);
-      }
-    } catch (error) {
-      console.error('Error al cargar notas:', error);
-    }
-  };
-
-  // Suscribirse a cambios en tiempo real
-  const subscribeToChanges = () => {
-    // Suscripción a cambios en carpetas
-    supabase
-      .channel('folders-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'folders', filter: `user_id=eq.${userId}` },
-        () => { loadFolders(); }
-      )
-      .subscribe();
-
-    // Suscripción a cambios en notas
-    supabase
-      .channel('notes-changes')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'notes', filter: `user_id=eq.${userId}` },
-        () => { loadNotes(); }
-      )
-      .subscribe();
-  };
 
   // Filtrar notas según la carpeta seleccionada
   const filteredNotes = selectedFolderId === null
     ? notes
     : notes.filter(note => note.folder_id === selectedFolderId);
 
-  const handleContentChange = async (content: string) => {
-    if (!selectedNote || !userId) return;
-
-    // Actualizar estado local inmediatamente
-    const updatedNotes = notes.map(note => 
-      note.id === selectedNote.id ? { ...note, content } : note
-    );
-    setNotes(updatedNotes);
-
-    // Guardar en Supabase
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .update({ content, updated_at: new Date().toISOString() })
-        .eq('id', selectedNote.id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error al guardar contenido:', error);
-    }
-  };
-
-  const handleCreateFolder = async (name: string, color: string) => {
-    if (!userId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('folders')
-        .insert([{ name, color, user_id: userId }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newFolder: Folder = {
-        id: data.id,
-        name: data.name,
-        color: data.color,
-        noteCount: 0,
-      };
-      setFolders([...folders, newFolder]);
-    } catch (error) {
-      console.error('Error al crear carpeta:', error);
-      alert('Error al crear carpeta');
-    }
-  };
-
-  const handleRenameFolder = async (folderId: string, newName: string) => {
-    try {
-      const { error } = await supabase
-        .from('folders')
-        .update({ name: newName })
-        .eq('id', folderId);
-
-      if (error) throw error;
-
-      setFolders(folders.map(folder => 
-        folder.id === folderId ? { ...folder, name: newName } : folder
-      ));
-    } catch (error) {
-      console.error('Error al renombrar carpeta:', error);
-    }
-  };
-
-  const handleRenameNote = async (noteId: string, newTitle: string) => {
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .update({ title: newTitle, updated_at: new Date().toISOString() })
-        .eq('id', noteId);
-
-      if (error) throw error;
-
+  const handleContentChange = (content: string) => {
+    if (selectedNote) {
       setNotes(notes.map(note => 
-        note.id === noteId ? { ...note, title: newTitle } : note
+        note.id === selectedNote.id ? { ...note, content } : note
       ));
-      if (selectedNote?.id === noteId) {
-        setSelectedNote({ ...selectedNote, title: newTitle });
-      }
-    } catch (error) {
-      console.error('Error al renombrar nota:', error);
     }
   };
 
-  const handleDeleteFolder = async (folderId: string) => {
-    try {
-      // Primero actualizar las notas que están en esta carpeta
-      await supabase
-        .from('notes')
-        .update({ folder_id: null })
-        .eq('folder_id', folderId);
+  const handleCreateFolder = (name: string, color: string) => {
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name,
+      color,
+      noteCount: 0,
+    };
+    setFolders([...folders, newFolder]);
+  };
 
-      // Luego eliminar la carpeta
-      const { error } = await supabase
-        .from('folders')
-        .delete()
-        .eq('id', folderId);
+  const handleRenameFolder = (folderId: string, newName: string) => {
+    setFolders(folders.map(folder => 
+      folder.id === folderId ? { ...folder, name: newName } : folder
+    ));
+  };
 
-      if (error) throw error;
-
-      setFolders(folders.filter(folder => folder.id !== folderId));
-      setNotes(notes.map(note => 
-        note.folder_id === folderId ? { ...note, folder_id: null } : note
-      ));
-      if (selectedFolderId === folderId) {
-        setSelectedFolderId(null);
-      }
-    } catch (error) {
-      console.error('Error al eliminar carpeta:', error);
-      alert('Error al eliminar carpeta');
+  const handleRenameNote = (noteId: string, newTitle: string) => {
+    setNotes(notes.map(note => 
+      note.id === noteId ? { ...note, title: newTitle } : note
+    ));
+    if (selectedNote?.id === noteId) {
+      setSelectedNote({ ...selectedNote, title: newTitle });
     }
   };
 
-  const handleCreateNote = async () => {
-    if (!newNoteTitle.trim() || !userId) return;
+  const handleDeleteFolder = (folderId: string) => {
+    setFolders(folders.filter(folder => folder.id !== folderId));
+    // Mover las notas de esta carpeta a "sin carpeta"
+    setNotes(notes.map(note => 
+      note.folder_id === folderId ? { ...note, folder_id: null } : note
+    ));
+    if (selectedFolderId === folderId) {
+      setSelectedFolderId(null);
+    }
+  };
 
-    try {
-      const { data, error } = await supabase
-        .from('notes')
-        .insert([{
-          title: newNoteTitle.trim(),
-          content: '<p>Escribe aquí...</p>',
-          folder_id: selectedFolderId,
-          user_id: userId
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
+  const handleCreateNote = () => {
+    if (newNoteTitle.trim()) {
       const newNote: Note = {
-        id: data.id,
-        title: data.title,
-        content: data.content,
-        folder_id: data.folder_id,
+        id: Date.now().toString(),
+        title: newNoteTitle.trim(),
+        content: '<p>Escribe aquí...</p>',
+        folder_id: selectedFolderId,
       };
-      
       setNotes([newNote, ...notes]);
       setSelectedNote(newNote);
       setNewNoteTitle('');
       setIsCreatingNote(false);
       setMobileView('editor');
-    } catch (error) {
-      console.error('Error al crear nota:', error);
-      alert('Error al crear nota');
-    }
-  };
-
-  const handleDeleteNote = async (noteId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', noteId);
-
-      if (error) throw error;
-
-      setNotes(notes.filter(note => note.id !== noteId));
       
-      if (selectedNote?.id === noteId) {
-        const remainingNotes = notes.filter(note => note.id !== noteId);
-        setSelectedNote(remainingNotes[0] || null);
+      // Actualizar el contador de notas de la carpeta
+      if (selectedFolderId) {
+        setFolders(folders.map(folder =>
+          folder.id === selectedFolderId
+            ? { ...folder, noteCount: folder.noteCount + 1 }
+            : folder
+        ));
       }
-    } catch (error) {
-      console.error('Error al eliminar nota:', error);
-      alert('Error al eliminar nota');
     }
   };
 
-  const handleMoveNote = async (noteId: string, targetFolderId: string | null) => {
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .update({ folder_id: targetFolderId, updated_at: new Date().toISOString() })
-        .eq('id', noteId);
-
-      if (error) throw error;
-
-      setNotes(notes.map(n =>
-        n.id === noteId ? { ...n, folder_id: targetFolderId } : n
+  const handleDeleteNote = (noteId: string) => {
+    const noteToDelete = notes.find(n => n.id === noteId);
+    setNotes(notes.filter(note => note.id !== noteId));
+    
+    // Actualizar el contador de notas de la carpeta
+    if (noteToDelete?.folder_id) {
+      setFolders(folders.map(folder =>
+        folder.id === noteToDelete.folder_id
+          ? { ...folder, noteCount: Math.max(0, folder.noteCount - 1) }
+          : folder
       ));
-    } catch (error) {
-      console.error('Error al mover nota:', error);
     }
+    
+    if (selectedNote?.id === noteId) {
+      setSelectedNote(notes[0] || null);
+    }
+  };
+
+  const handleMoveNote = (noteId: string, targetFolderId: string | null) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    // Actualizar contadores
+    if (note.folder_id) {
+      setFolders(folders.map(folder =>
+        folder.id === note.folder_id
+          ? { ...folder, noteCount: Math.max(0, folder.noteCount - 1) }
+          : folder
+      ));
+    }
+    if (targetFolderId) {
+      setFolders(folders.map(folder =>
+        folder.id === targetFolderId
+          ? { ...folder, noteCount: folder.noteCount + 1 }
+          : folder
+      ));
+    }
+
+    setNotes(notes.map(n =>
+      n.id === noteId ? { ...n, folder_id: targetFolderId } : n
+    ));
   };
 
   const handleSelectFolder = (folderId: string | null) => {
@@ -352,17 +191,6 @@ function App() {
       noteCount: counts[folder.id] || 0,
     })));
   }, [notes]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        <div className="text-center">
-          <div className="text-4xl mb-4">📝</div>
-          <p>Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
