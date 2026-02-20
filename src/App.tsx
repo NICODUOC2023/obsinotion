@@ -41,19 +41,19 @@ function App() {
 
   const initializeUser = async () => {
     try {
-      // Autenticación anónima - crea un usuario único por dispositivo
-      const { data: { session } } = await supabase.auth.getSession();
+      // Generar o recuperar ID de usuario único por dispositivo
+      let localUserId = localStorage.getItem('obsinotion_user_id');
       
-      if (!session) {
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) throw error;
-        setUserId(data.user?.id || null);
-      } else {
-        setUserId(session.user.id);
+      if (!localUserId) {
+        // Generar un UUID simple
+        localUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('obsinotion_user_id', localUserId);
       }
+      
+      setUserId(localUserId);
     } catch (error) {
       console.error('Error al inicializar usuario:', error);
-      alert('Error al conectar con el servidor. Verifica tu conexión.');
+      alert('Error al inicializar la aplicación.');
     } finally {
       setLoading(false);
     }
