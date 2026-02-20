@@ -38,6 +38,8 @@ function App() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(notes[0]);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteTitle, setEditingNoteTitle] = useState('');
   
   // Vista móvil: 'folders' | 'notes' | 'editor'
   const [mobileView, setMobileView] = useState<'folders' | 'notes' | 'editor'>('folders');
@@ -76,6 +78,15 @@ function App() {
     setFolders(folders.map(folder => 
       folder.id === folderId ? { ...folder, name: newName } : folder
     ));
+  };
+
+  const handleRenameNote = (noteId: string, newTitle: string) => {
+    setNotes(notes.map(note => 
+      note.id === noteId ? { ...note, title: newTitle } : note
+    ));
+    if (selectedNote?.id === noteId) {
+      setSelectedNote({ ...selectedNote, title: newTitle });
+    }
   };
 
   const handleDeleteFolder = (folderId: string) => {
@@ -268,7 +279,41 @@ function App() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate text-base mb-1">{note.title}</h3>
+                      {editingNoteId === note.id ? (
+                        <input
+                          type="text"
+                          value={editingNoteTitle}
+                          onChange={(e) => setEditingNoteTitle(e.target.value)}
+                          onBlur={() => {
+                            if (editingNoteTitle.trim()) {
+                              handleRenameNote(note.id, editingNoteTitle.trim());
+                            }
+                            setEditingNoteId(null);
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              if (editingNoteTitle.trim()) {
+                                handleRenameNote(note.id, editingNoteTitle.trim());
+                              }
+                              setEditingNoteId(null);
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-gray-600 text-white px-2 py-1 rounded text-base mb-1"
+                          autoFocus
+                        />
+                      ) : (
+                        <h3 
+                          className="font-medium truncate text-base mb-1 cursor-text"
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            setEditingNoteId(note.id);
+                            setEditingNoteTitle(note.title);
+                          }}
+                        >
+                          {note.title}
+                        </h3>
+                      )}
                       <p className="text-sm text-gray-400 line-clamp-2">
                         {note.content.replace(/<[^>]*>/g, '')}
                       </p>
@@ -324,7 +369,39 @@ function App() {
               >
                 ←
               </button>
-              <h3 className="flex-1 font-medium truncate">{selectedNote.title}</h3>
+              {editingNoteId === selectedNote.id ? (
+                <input
+                  type="text"
+                  value={editingNoteTitle}
+                  onChange={(e) => setEditingNoteTitle(e.target.value)}
+                  onBlur={() => {
+                    if (editingNoteTitle.trim()) {
+                      handleRenameNote(selectedNote.id, editingNoteTitle.trim());
+                    }
+                    setEditingNoteId(null);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      if (editingNoteTitle.trim()) {
+                        handleRenameNote(selectedNote.id, editingNoteTitle.trim());
+                      }
+                      setEditingNoteId(null);
+                    }
+                  }}
+                  className="flex-1 bg-gray-700 text-white px-3 py-2 rounded"
+                  autoFocus
+                />
+              ) : (
+                <h3 
+                  className="flex-1 font-medium truncate cursor-text"
+                  onDoubleClick={() => {
+                    setEditingNoteId(selectedNote.id);
+                    setEditingNoteTitle(selectedNote.title);
+                  }}
+                >
+                  {selectedNote.title}
+                </h3>
+              )}
             </div>
             <div className="flex-1 overflow-hidden">
               <NoteEditor
