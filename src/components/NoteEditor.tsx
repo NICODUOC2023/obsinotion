@@ -198,7 +198,9 @@ const InlineBubbleMenu: React.FC<BubbleMenuProps> = ({
   applyTable,
   bubbleBtn,
 }) => {
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  // coordsAtPos devuelve coordenadas relativas al viewport → usamos directamente con position:fixed
+  const [desktopPos, setDesktopPos] = useState<{ top: number; left: number } | null>(null);
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
   const editorState = useEditorState({
     editor,
@@ -210,18 +212,21 @@ const InlineBubbleMenu: React.FC<BubbleMenuProps> = ({
   });
 
   useEffect(() => {
+    if (isMobile) return; // móvil usa barra fija, no necesita coordenadas
     if (!editor || editorState?.empty) {
-      setPos(null);
+      setDesktopPos(null);
       return;
     }
     const { from, to } = editor.state.selection;
     const start = editor.view.coordsAtPos(from);
     const end = editor.view.coordsAtPos(to);
     const midX = (start.left + end.right) / 2;
-    setPos({ top: start.top + window.scrollY - 48, left: midX });
-  }, [editor, editorState]);
+    // coordsAtPos ya es relativo al viewport → solo restamos altura del menú
+    setDesktopPos({ top: start.top - 48, left: midX });
+  }, [editor, editorState, isMobile]);
 
-  if (!pos || editorState?.empty) return null;
+  const hasSelection = !editorState?.empty;
+  if (!hasSelection) return null;
 
   const numInput = (val: number, onChange: (n: number) => void, label: string) => (
     <div className="flex flex-col items-center gap-0.5">
@@ -239,12 +244,8 @@ const InlineBubbleMenu: React.FC<BubbleMenuProps> = ({
     </div>
   );
 
-  return (
-    <div
-      style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)' }}
-      className="fixed z-50 flex items-center gap-0.5 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-1.5 py-1"
-      onMouseDown={(e) => e.preventDefault()}
-    >
+  const menuContent = (
+    <>
       {linkInputVisible ? (
         <div className="flex items-center gap-1 px-1">
           <input
@@ -280,7 +281,7 @@ const InlineBubbleMenu: React.FC<BubbleMenuProps> = ({
         </div>
       ) : (
         <>
-          <button onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className={bubbleBtn(!!editor?.isActive('heading', { level: 1 }))} title="Encabezado H2">
+          <button onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} className={bubbleBtn(!!editor?.isActive('heading', { level: 2 }))} title="Encabezado H2">
             <Heading2 size={14} strokeWidth={2} />
           </button>
           <div className="w-px h-4 bg-gray-600 mx-0.5" />
@@ -316,6 +317,32 @@ const InlineBubbleMenu: React.FC<BubbleMenuProps> = ({
           </button>
         </>
       )}
+    </>
+  );
+
+  // ── Móvil: barra fija en el fondo ─────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-0.5 bg-gray-800/95 backdrop-blur border-t border-gray-700 px-3 py-2"
+        style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
+        onMouseDown={(e) => e.preventDefault()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        {menuContent}
+      </div>
+    );
+  }
+
+  // ── Desktop: flotante sobre la selección ──────────────────────────────────
+  if (!desktopPos) return null;
+  return (
+    <div
+      style={{ top: desktopPos.top, left: desktopPos.left, transform: 'translateX(-50%)' }}
+      className="fixed z-50 flex items-center gap-0.5 bg-gray-800 border border-gray-700 rounded-lg shadow-xl px-1.5 py-1"
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      {menuContent}
     </div>
   );
 };
@@ -497,7 +524,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ title, onTitleChange, initialCo
       <TableToolbar editor={editor} />
 
       {/* ── Editor ──────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
         <EditorContent editor={editor} />
       </div>
       
