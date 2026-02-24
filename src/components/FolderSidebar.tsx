@@ -1,5 +1,6 @@
 // src/components/FolderSidebar.tsx
 import React, { useState } from 'react';
+import { FileText, Folder, Pencil, Trash2, LogOut } from 'lucide-react';
 
 interface Folder {
   id: string;
@@ -32,7 +33,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'gray'];
+  const colors = ['white'];
   const [selectedColor, setSelectedColor] = useState('blue');
 
   const handleCreateFolder = () => {
@@ -78,7 +79,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
         }`}
       >
         <div className="flex items-center gap-2">
-          <span className="text-gray-400">📝</span>
+          <FileText className="text-white" size={16} strokeWidth={1.5} />
           <span className="text-sm">Todas las notas</span>
         </div>
       </div>
@@ -87,7 +88,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
 
       {/* Carpetas */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-gray-400 uppercase">Carpetas</h2>
+        <h2 className="text-sm font-semibold text-gray-400 ">Carpetas</h2>
         <button
           onClick={() => setIsCreating(true)}
           className="text-gray-400 hover:text-white text-xl leading-none"
@@ -121,7 +122,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
                   onClick={() => onSelectFolder(folder.id)}
                   className="flex items-center gap-2 flex-1"
                 >
-                  <span className={getColorClass(folder.color)}>📁</span>
+                  <Folder className={getColorClass(folder.color)} size={16} strokeWidth={1.5} />
                   <span className="text-sm truncate">{folder.name}</span>
                   <span className="text-xs text-gray-500">({folder.noteCount})</span>
                 </div>
@@ -132,10 +133,10 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
                       setEditingFolderId(folder.id);
                       setEditingName(folder.name);
                     }}
-                    className="text-gray-400 hover:text-white text-xs p-1"
+                    className="text-gray-400 hover:text-white p-1"
                     title="Renombrar"
                   >
-                    ✏️
+                    <Pencil size={13} strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={(e) => {
@@ -144,10 +145,10 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
                         onDeleteFolder(folder.id);
                       }
                     }}
-                    className="text-gray-400 hover:text-red-400 text-xs p-1"
+                    className="text-gray-400 hover:text-red-400 p-1"
                     title="Eliminar"
                   >
-                    🗑️
+                    <Trash2 size={13} strokeWidth={1.5} />
                   </button>
                 </div>
               </>
@@ -208,7 +209,7 @@ const FolderSidebar: React.FC<FolderSidebarProps> = ({
             onClick={onLogout}
             className="w-full flex items-center justify-center gap-2 p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors"
           >
-            <span>🚪</span>
+            <LogOut size={16} strokeWidth={1.5} />
             <span className="text-sm">Cerrar sesión</span>
           </button>
         </div>

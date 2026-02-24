@@ -1,5 +1,6 @@
 // src/components/Auth.tsx
 import { useState } from 'react';
+import { FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface AuthProps {
@@ -61,7 +62,10 @@ export default function Auth({ onAuth }: AuthProps) {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">📝 Obsinotion</h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <FileText className="text-white" size={28} strokeWidth={1.5} />
+            <h1 className="text-3xl font-bold text-white">Obsinotion</h1>
+          </div>
           <p className="text-gray-400">
             {isLogin ? 'Inicia sesión en tu cuenta' : 'Crea una cuenta nueva'}
           </p>

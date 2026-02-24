@@ -1,5 +1,6 @@
 // src/App.tsx
 import { useState, useEffect } from 'react';
+import { FileText, Trash2 } from 'lucide-react';
 import NoteEditor from './components/NoteEditor';
 import FolderSidebar from './components/FolderSidebar';
 import Auth from './components/Auth';
@@ -329,23 +330,6 @@ function App() {
     }
   };
 
-  const handleMoveNote = async (noteId: string, targetFolderId: string | null) => {
-    try {
-      const { error } = await supabase
-        .from('notes')
-        .update({ folder_id: targetFolderId, updated_at: new Date().toISOString() })
-        .eq('id', noteId);
-
-      if (error) throw error;
-
-      setNotes(notes.map(n =>
-        n.id === noteId ? { ...n, folder_id: targetFolderId } : n
-      ));
-    } catch (error) {
-      console.error('Error al mover nota:', error);
-    }
-  };
-
   const handleSelectFolder = (folderId: string | null) => {
     setSelectedFolderId(folderId);
     setMobileView('notes');
@@ -374,7 +358,7 @@ function App() {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
         <div className="text-center">
-          <div className="text-4xl mb-4">📝</div>
+          <FileText className="text-white mx-auto mb-4" size={48} strokeWidth={1} />
           <p>Cargando...</p>
         </div>
       </div>
@@ -421,8 +405,9 @@ function App() {
           </h2>
           <button
             onClick={() => setIsCreatingNote(true)}
-            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
-          >
+            className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-xl text-sm px-4 py-2.5 text-center leading-5">
+          
+
             + Nueva
           </button>
         </div>
@@ -519,29 +504,13 @@ function App() {
                           handleDeleteNote(note.id);
                         }
                       }}
-                      className="hidden md:group-hover:block text-gray-400 hover:text-red-400 ml-3 text-xl p-1"
+                      className="hidden md:group-hover:flex text-gray-400 hover:text-red-400 ml-3 p-1 items-center"
                     >
-                      🗑️
+                      <Trash2 size={16} strokeWidth={1.5} />
                     </button>
                   </div>
                   
-                  {/* Selector de carpeta */}
-                  <select
-                    value={note.folder_id || ''}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleMoveNote(note.id, e.target.value || null);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-gray-700 text-white text-sm px-3 py-2 rounded"
-                  >
-                    <option value="">Sin carpeta</option>
-                    {folders.map(folder => (
-                      <option key={folder.id} value={folder.id}>
-                        📁 {folder.name}
-                      </option>
-                    ))}
-                  </select>
+                  
                 </li>
               ))}
             </ul>
@@ -600,6 +569,10 @@ function App() {
             <div className="flex-1 overflow-hidden">
               <NoteEditor
                 key={selectedNote.id}
+                title={selectedNote.title}
+                onTitleChange={(newTitle) => {
+                  if (newTitle.trim()) handleRenameNote(selectedNote.id, newTitle);
+                }}
                 initialContent={selectedNote.content}
                 onContentChange={handleContentChange}
               />

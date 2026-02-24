@@ -406,6 +406,8 @@ function App() {
             <div className="flex-1 overflow-hidden">
               <NoteEditor
                 key={selectedNote.id}
+                title={selectedNote.title}
+                onTitleChange={(newTitle) => { if (newTitle.trim()) handleRenameNote(selectedNote.id, newTitle); }}
                 initialContent={selectedNote.content}
                 onContentChange={handleContentChange}
               />
